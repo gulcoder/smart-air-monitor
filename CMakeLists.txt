@@ -38,7 +38,41 @@ file(COPY ${PICO_SDK_PATH}/lib/cyw43-driver/firmware/
 
 pico_sdk_init()
 
-add_executable(wifi src/main.c)
+add_definitions(-DMBEDTLS_NO_PLATFORM_ENTROPY)
+add_definitions(-DMBEDTLS_ENTROPY_HARDWARE_ALT)
+
+set(ENABLE_PROGRAMS OFF CACHE BOOL "" FORCE)
+set(ENABLE_TESTING OFF CACHE BOOL "" FORCE)
+set(MBEDTLS_AS_SUBPROJECT ON)
+
+add_subdirectory(${PICO_SDK_PATH}/lib/mbedtls ${CMAKE_CURRENT_BINARY_DIR}/mbedtls)
+
+add_executable(wifi 
+	src/main.c
+	src/wifi.c
+	src/bme680.c
+	src/bme68x.c
+	src/mqtt_client.c
+	src/pico_transport.c
+	src/datetime.c
+	#src/mqtt_lib/MQTTPacket/src/MQTTPacket.c
+	#src/mqtt_lib/MQTTPacket/src/MQTTSerializePublish.c
+	#src/mqtt_lib/MQTTPacket/src/MQTTConnectClient.c
+	#src/mqtt_lib/MQTTPacket/src/MQTTConnectServer.c
+	#src/mqtt_lib/MQTTPacket/src/MQTTDeserializePublish.c
+	#src/mqtt_lib/MQTTPacket/src/MQTTUnsubscribeClient.c
+	#src/mqtt_lib/MQTTPacket/src/MQTTUnsubscribeServer.c
+	src/mqtt_lib/PahoEmbeddedC/MQTTClient-C/src/MQTTClient.c
+	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTPacket.c
+	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTConnectClient.c
+	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTConnectServer.c
+    	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTDeserializePublish.c
+    	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTSerializePublish.c
+    	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTSubscribeClient.c
+   	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTSubscribeServer.c
+    	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTUnsubscribeClient.c
+    	src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src/MQTTUnsubscribeServer.c
+)
 
 pico_set_program_name(wifi "wifi")
 
@@ -51,6 +85,7 @@ target_compile_definitions(wifi PRIVATE
 
 target_compile_definitions(wifi PRIVATE
     CYW43_HAL_GET_MAC_DEFINED=1  # Prevent redefinition
+    MBEDTLS_ALLOW_PRIVATE_ACCESS
 )
 
 target_include_directories(wifi PRIVATE
@@ -101,15 +136,25 @@ target_include_directories(wifi PRIVATE
     #${PICO_SDK_PATH}/src/rp2_common/pico_unique_id/include
     #${PICO_SDK_PATH}/src/rp2_common/pico_runtime/include
     ${CMAKE_CURRENT_SOURCE_DIR}/src
+    # ${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_lib/MQTTPacket/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_lib/PahoEmbeddedC/MQTTClient-C/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/mqtt_lib/PahoEmbeddedC/MQTTPacket/src
+    ${PICO_SDK_PATH}/lib/mbedtls/include
 )
 
 target_link_libraries(wifi
     pico_cyw43_arch_lwip_threadsafe_background
     pico_stdlib
     pico_lwip
+    pico_lwip_mbedtls
+    pico_lwip_sntp
+    mbedtls
+    mbedx509
+    mbedcrypto
     hardware_pio
     hardware_dma
     hardware_irq
+    hardware_i2c
 )
 
 pico_enable_stdio_usb(wifi 1)

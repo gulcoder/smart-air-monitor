@@ -20,17 +20,26 @@
 #define MEM_LIBC_MALLOC             0
 #endif
 #define MEM_ALIGNMENT               4
-#define MEM_SIZE                    4000
-#define MEMP_NUM_TCP_SEG            32
+#undef MEM_SIZE
+#define MEM_SIZE                    28000
+#undef MEMP_NUM__TCP_SEG
+#define MEMP_NUM_TCP_SEG            16
 #define MEMP_NUM_ARP_QUEUE          10
-#define PBUF_POOL_SIZE              24
+#undef MEMP_NUM_SYS_TIMEOUT
+#define MEMP_NUM_SYS_TIMEOUT	    20
+#undef PBUF_POOL_SIZE
+#define PBUF_POOL_SIZE              16
 #define LWIP_ARP                    1
 #define LWIP_ETHERNET               1
 #define LWIP_ICMP                   1
 #define LWIP_RAW                    1
-#define TCP_WND                     (8 * TCP_MSS)
+#undef TCP_WND
+#define TCP_WND                     (4 * TCP_MSS)
+#undef TCP_MSS
 #define TCP_MSS                     1460
-#define TCP_SND_BUF                 (8 * TCP_MSS)
+#undef TCP_SND_BUF
+#define TCP_SND_BUF                 (4 * TCP_MSS)
+#undef TCP_SND_QUEUELEN
 #define TCP_SND_QUEUELEN            ((4 * (TCP_SND_BUF) + (TCP_MSS - 1)) / (TCP_MSS))
 #define LWIP_NETIF_STATUS_CALLBACK  1
 #define LWIP_NETIF_LINK_CALLBACK    1
@@ -86,5 +95,17 @@
 #define PPP_DEBUG                   LWIP_DBG_OFF
 #define SLIP_DEBUG                  LWIP_DBG_OFF
 #define DHCP_DEBUG                  LWIP_DBG_OFF
+
+// --- LÄGG TILL DETTA FÖR ATT AKTIVERA TLS/HTTPS/MQTTS ---
+#define LWIP_ALTCP              1
+#define LWIP_ALTCP_TLS          1
+#define LWIP_ALTCP_TLS_MBEDTLS  1
+#define LWIP_SNTP 		1
+#define SNTP_SERVER_DNS		1
+// (Valfritt men rekommenderat) Öka minnet lite för TLS-hantering
+#undef TCP_MSS
+#define TCP_MSS                 536
+#undef TCP_WND
+#define TCP_WND                 (8 * TCP_MSS)
 
 #endif /* __LWIPOPTS_H__ */

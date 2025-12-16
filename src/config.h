@@ -1,0 +1,20 @@
+#ifndef CONFIG_H
+#define CONFIG_H
+
+// Wi-Fi inställningar
+#define WIFI_SSID "DITT_WIFI_NAMN"
+#define WIFI_PASSWORD "DITT_LOSENORD"
+
+// MQTT inställningar
+#define MQTT_BROKER_HOST "DEINIERA_BROKER_HOST_ADDRESS_HAR"
+#define MQTT_BROKER_PORT XXXX
+#define MQTT_CLIENT_ID   "DEFINIERA_DITT_UNIKA_CLIENT_ID_HAR"
+
+#define MQTT_TOPIC "DEFINIERA_MQTT_TOPIC_HAR"
+
+
+// Hårdvara
+#define SDA_PIN 4
+#define SCL_PIN 5
+
+#endif

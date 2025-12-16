@@ -1,11 +1,46 @@
-build/
-*.uf2
-*.o
+# .gitignore
+
+# ------------------------------------
+# 1. Byggfiler och Kataloger (Viktigast)
+# ------------------------------------
+# Hela byggkatalogen som skapas av CMake
+/build/
+
+# CMake genererade filer som cache och temporära filer
+CMakeCache.txt
+CMakeFiles/
+Testing/
+
+# Slutliga exekverbara filer som inte ska vara med i Git
 *.elf
+*.uf2
 *.bin
 *.map
-CMakeFiles/
-CMakeCache.txt
-cmake_install.cmake
-Makefile
+*.hex
+*.lst
+*.dis
+*.a
+*.lib
 
+# ------------------------------------
+# 2. Logg- och Temporära Filer
+# ------------------------------------
+*.log
+*~
+# Vanliga temporära filer från editorer
+# t.ex. nano, vim, sublime text, vs code
+.vscode/
+.history/
+
+# ------------------------------------
+# 3. Externa Bibliotek & SDK
+# ------------------------------------
+# Om du hanterar pico-sdk som en submodul kan du ignorera den
+# (Ta bort # om du inte använder pico-sdk som en Git submodul)
+# pico-sdk/
+
+# ------------------------------------
+# 4. Känsliga Filer (Ignorerar endast ifall du fyller i skarpa värden)
+# ------------------------------------
+# OBS: Vi inkluderar inte config.h eller mqtt_client.c här,
+# eftersom du har maskerat dem och vill att de ska synas i Git.
