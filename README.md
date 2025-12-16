@@ -1,45 +1,83 @@
-# Raspberry Pi Pico W Wi-Fi Anslutning
+# 🏙️ Pico W Miljömonitor (Yggio mTLS-Integration)
+Ett robust IoT-projekt designat för att övervaka inomhusluftkvalitet och miljödata, med fokus på säker och direkt dataöverföring till Stockholms Stads IoT-plattform (Yggio) via mTLS (Mutual TLS).
 
-Detta projekt demonstrerar hur man ansluter en Raspberry Pi Pico W till Wi-Fi med hjälp av Cyw43-drivrutinen för Wi-Fi-funktionalitet.
+> Systemet använder en Raspberry Pi Pico W och en BME680-sensor för att mäta temperatur, luftfuktighet, barometertryck och luftkvalitet (VOC/CO₂-ekvivalent).
 
-## Förutsättningar
+## 🎯 Projektmål & Höjdpunkter
+- Säkerhet i Fokus: Implementera mTLS (Mutual TLS) för säker autentisering mot extern MQTT-broker, med hjälp av klientcertifikat och nyckel (Client.crt/Client.key).
 
-Innan du börjar, säkerställ att du har följande:
+- Realtidsövervakning: Mäta och skicka miljödata från BME680-sensorn.
 
-- Raspberry Pi Pico W
-- En dator med Docker installerad (för utvecklingsmiljö)
-- En micro-USB-kabel för att ansluta Pico W till datorn
-- Wi-Fi nätverksuppgifter (SSID och lösenord)
-- Grundläggande förståelse för C-programmering och användning av kommandoraden
+- Stadsintegration: Direkt publicering av data till Stockholms Stads IoT-plattform (Yggio) via deras dedikerade MQTT-broker.
 
-## Komma igång
+- Robust Status: Implementera Last Will and Testament (LWT) med separat Topic för att ge en omedelbar Online/Offline-status utan att förorena sensordatan.
 
-### 1. Installera Utvecklingsmiljö
 
-1. Klona repositoryt till din lokala maskin:
 
-    ```bash
-    git clone https://github.com/gulcoder/pico-wifi.git
-    cd pico-wifi
-    ```
+## 🗺️ Lösningsarkitektur
 
-2. Bygg projektet i Docker eller använd din lokala utvecklingsmiljö:
+Arkitekturen beskriver den säkra dataflödeskedjan där Pico W agerar som en direkt mTLS-klient mot den externa gatewayen, utan mellanhänder.
 
-    - Använd Docker:
-        - Starta Docker Desktop och öppna terminalen.
-        - Kör kommandot `docker build -t pico-wifi .`
-        
-    Eller använd en lokal utvecklingsmiljö för att bygga projektet direkt på din dator.
+```mermaid
+%%{init: { 'theme': 'base', 'themeVariables': { 'background': '#ffffff' }}}%%
+graph TD
+    classDef whitebox fill:#ffffff,stroke:#d63384,stroke-width:2px;
+    classDef lightpinkbox fill:#ffe0f0,stroke:#d63384,stroke-width:2px;
+    classDef softpinkbox fill:#fff0f7,stroke:#b03060,stroke-width:2px;
 
-### 2. Kompilera och ladda upp
+    subgraph " Sensorenhet"
+        A[Pico W<br/>C/C++]:::whitebox
+        B[Sensorvärde<br/>BME680<br/>Temperature, Humidity, Pressure, Gas]:::lightpinkbox
+        A --> B
+    end
 
-1. Efter att ha byggt projektet med CMake, anslut din Raspberry Pi Pico W via USB till datorn.
-2. Skriv ut filen `wifi.uf2` till din Pico W genom att kopiera den till enheten som dyker upp som en USB-enhet.
-3. Starta om din Pico W genom att ta bort och återansluta USB-kabeln.
+    subgraph "Extern Gateway"
+        C[Extern MQTT Broker<br/>mTLS]:::softpinkbox
+        B -->|MQTTs / mTLS| C
+    end
 
-### 3. Kontrollera anslutningen
+    subgraph "Intern Infrastruktur"
+        D[Intern MQTT Broker<br/>Vidarebefordran]:::whitebox
+        C -->|MQTTs / TLS| D
+    end
 
-När du har laddat upp koden kommer Pico W att försöka ansluta till Wi-Fi. Om anslutningen lyckas kommer en IP-adress att skrivas ut på skärmen, som kan användas för att pinga Pico W:
+    subgraph "Plattform"
+        E[Yggio IoT-plattform<br/>Data & Analys]:::lightpinkbox
+        D -->|MQTTs / TLS| E
+    end
+```
 
-```bash
-ping 192.168.x.x
+## ⚙️ Tekniska Komponenter
+
+| Komponent | Funktion | Teknik / Bibliotek |
+| :--- | :--- | :--- |
+| **Microkontroller** | Primär sensorenhet | Raspberry Pi Pico W |
+| **Sensor** | Miljömätning (TVOC/IAQ, T, P, H) | Bosch BME680 |
+| **Kärnbibliotek** | Operativsystem & Drivrutiner | Raspberry Pi Pico C/C++ SDK |
+| **Kommunikation** | Säker dataöverföring | MQTT över **TLS 1.2** (mbedTLS) |
+| **Plattform** | Dataförvaring och visualisering | Yggio IoT Platform |
+
+## 📊 Datavisualisering av mätvärden i realtid: Yggio Dashboard
+
+Bilden nedan visar hur BME680-sensordatan (Temperatur, Luftfuktighet och Gas/Luftkvalitet) visualiseras i realtid efter att den har mottagits säkert via mTLS och MQTT(s) i Yggio IoT Plattform.
+
+<img width="1824" height="981" alt="image" src="https://github.com/user-attachments/assets/03025223-b87b-439d-81e3-5fb39aafd1c5" />
+
+## 📂 Projektstruktur
+
+Projektet följer standardiserad Raspberry Pi Pico C/C++ SDK-layout, vilket gör det lätt att navigera och bygga.
+
+| Fil / Katalog | Beskrivning |
+| :--- | :--- |
+| **`src/main.c`** | Huvudprogrammet. Hanterar Wi-Fi, NTP-synkronisering och den primära programloopen (datainsamling och sändning). |
+| **`src/mqtt_client.c/h`** | Implementerar MQTT-klientlogik, **mTLS-autentisering** och hanterar inbäddade maskerade certifikat/nycklar. |
+| **`src/pico_transport.c/h`** | Hanterar det underliggande TCP/IP-nätverkslagret och upprättar en säker TLS-tunnel. |
+| **`src/config.h`** | **Kritiskt: Måste ignoreras av Git!** Innehåller placeholders för Wi-Fi SSID/Lösenord, Broker Host, Client ID och Topics. |
+| **`src/bme680.c/h`** | Applikationsspecifik drivrutin för att initiera och läsa sensordata (T, H, P, Gas) från BME680. |
+| **`src/datetime.c/h`** | Hanterar tids-synkronisering via NTP för korrekt tidsstämpling av data. |
+| **`BME68x_SensorAPI/`** | Vendor-bibliotek från Bosch (Sensor API). |
+| **`pico-sdk/`** | Submodul för Raspberry Pi Pico C/C++ SDK. |
+| **`build/`** | Katalog för byggda filer (.elf, .uf2, etc.). (Ignoreras av Git). |
+| **`CMakeLists.txt`** | Byggkonfiguration för hela projektet. |
+
+
