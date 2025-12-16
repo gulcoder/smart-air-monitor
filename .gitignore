@@ -32,6 +32,16 @@ Testing/
 .vscode/
 .history/
 
+# .gitignore
+
+# ... övriga ignoreringar ...
+
+# PICO SDK: Lokala byggspecifika filer
+pico_sdk_import.cmake
+
+# Docker: Lokala eller genererade filer
+Dockerfile
+
 # ------------------------------------
 # 3. Externa Bibliotek & SDK
 # ------------------------------------
